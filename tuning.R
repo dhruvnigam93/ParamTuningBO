@@ -1,8 +1,15 @@
+
+#### Loadd Libraries
 library(mlr)
 library(xgboost)
 
+#### Get data ####
 train = read.csv("https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data" , stringsAsFactors = F , header = F)
 test = read.csv("https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.test" , stringsAsFactors = F , header = F)
+
+
+#### Clean Data
+
 setcol <- c("age","workclass","fnlwgt","education","education_num","marital_status","occupation",
             "relationship","race","sex","capital_gain","capital_loss","hours_per_week","native_country","target")
 
@@ -15,7 +22,9 @@ for(i in 1:ncol(train)){
 }
 
 
-traintask <- makeClassifTask (data = createDummyFeatures(obj = train ,  target = "target") ,target = "target")
+#### Model Training
+
+traintask <- makeClassifTask(data = createDummyFeatures(obj = train ,  target = "target") ,target = "target")
 
 
 lrn <- makeLearner("classif.xgboost",predict.type = "response")
@@ -30,7 +39,7 @@ params <- makeParamSet( makeDiscreteParam("booster",values = c("gbtree")),
 
 rdesc <- makeResampleDesc("CV",stratify = T,iters=3)
 
-ctrl <- makeTuneControlRandom(maxit = 10L)
+ctrl <- makeTuneControlMBO(budget = 10)
 
 mytune <- tuneParams(learner = lrn, task = traintask, resampling = rdesc, measures = acc, par.set = params, control = ctrl, show.info = T)
 
